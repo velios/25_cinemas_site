@@ -1,0 +1,20 @@
+.card_wrapper {
+  margin-bottom: 15px;
+}
+
+.card {
+  height: 100%;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.footer {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    margin-top: 40px;
+    border-top: 1px solid #eee;
+}
