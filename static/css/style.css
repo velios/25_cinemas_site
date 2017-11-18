@@ -18,3 +18,7 @@
     margin-top: 40px;
     border-top: 1px solid #eee;
 }
+
+.nav-link {
+  font-size: 1.5rem;
+}

@@ -22,7 +22,14 @@ $ python3 server.py -d
 ##### Link to Heroku server
 This project also exist on [heroku PaaS platform](https://www.heroku.com/)
 
-Visit  to see application in work
+Visit https://obscure-refuge-89039.herokuapp.com/ to see application in work
+
+### API
+Also available [API](https://obscure-refuge-89039.herokuapp.com/api) 
+* `/api/movies` - return json response with info about movie from main page
+* `/api/movies/:result_amount/cinemas/:cinemas_amount` - same json but you can filter it
+    * `:result_amount` - amount of result items
+    * `:cinemas_amount` - min cinemas threshold 
 
 # Project Goals
 
