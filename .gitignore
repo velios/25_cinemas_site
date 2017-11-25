@@ -1,7 +1,7 @@
 # Created by .ignore support plugin (hsz.mobi)
-Include/
-Lib/
-Scripts/
+[Ii]nclude/
+[Ll]ib/
+[Ss]cripts/
 .idea/
 cache/
 __pycache__

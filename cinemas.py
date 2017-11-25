@@ -8,9 +8,9 @@ import tmdbsimple as tmdb
 tmdb.API_KEY = '49f139f62a6320fd0d3f0cc4aee5ee8c'
 
 
-def make_prefixed_dict(dict, prefix):
-    if dict:
-        return {prefix + key: value for key, value in dict.items()}
+def make_prefixed_dict(input_dict, prefix):
+    if input_dict:
+        return {prefix + key: value for key, value in input_dict.items()}
 
 
 def fetch_tmdb_data(query, prefix='tmdb_'):
@@ -20,17 +20,13 @@ def fetch_tmdb_data(query, prefix='tmdb_'):
     return make_prefixed_dict(result_dict[0], prefix) if result_dict else {}
 
 
-def fetch_proxy_list():
-    freeproxy_url = 'http://www.freeproxy-list.ru/api/proxy'
-    response = requests.get(freeproxy_url, params={'anonymity': 'false', 'token': 'demo'})
-    return response.text.split()
-
-
-def parse_afisha_list():
+def fetch_afisha_page():
     afisha_url = 'https://www.afisha.ru/spb/schedule_cinema/'
-    raw_afisha_html = requests.get(afisha_url).content
+    return requests.get(afisha_url).content
 
-    soup = BeautifulSoup(raw_afisha_html, "html.parser")
+
+def parse_afisha_list(afisha_html):
+    soup = BeautifulSoup(afisha_html, "html.parser")
     movie_tag_list = soup.find('div', id='schedule').find_all('div', recursive=False)
 
     movie_data_list = []
@@ -49,11 +45,13 @@ def parse_afisha_list():
     return movie_data_list
 
 
-def _fetch_kinopoisk_movie_rating(kinopoisk_movie_id):
-    movie_rating_url = 'https://rating.kinopoisk.ru/{id}.xml'.format(id=kinopoisk_movie_id)
-    raw_rating_xml = requests.get(movie_rating_url).content
+def _fetch_kinopoisk_movie_page(movie_id):
+    movie_rating_url = 'https://rating.kinopoisk.ru/{id}.xml'.format(id=movie_id)
+    return requests.get(movie_rating_url).content
 
-    soup = BeautifulSoup(raw_rating_xml, "xml")
+
+def _fetch_movie_rating(movie_xml):
+    soup = BeautifulSoup(movie_xml, "xml")
     kp_data = soup.find('kp_rating')
     imdb_data = soup.find('imdb_rating')
     rating_dict = {}
@@ -79,7 +77,8 @@ def fetch_kinopoisk_movie_info(movie_title, prefix='kp_'):
     )
     movie_data_dict = search_response.json()[0]
     movie_kinopoisk_id = movie_data_dict['id']
-    movie_data_dict.update(_fetch_kinopoisk_movie_rating(movie_kinopoisk_id))
+    movie_raw_xml = _fetch_kinopoisk_movie_page(movie_kinopoisk_id)
+    movie_data_dict.update(_fetch_movie_rating(movie_raw_xml))
     return make_prefixed_dict(movie_data_dict, prefix)
 
 
@@ -94,7 +93,8 @@ def _thread_update_movie_info(movie):
 
 
 def combine_movie_info_to_list_of_dicts(cinema_threshold = 15, return_movie_amount = 10):
-    ongoing_movies_list = parse_afisha_list()
+    afisha_html = fetch_afisha_page()
+    ongoing_movies_list = parse_afisha_list(afisha_html)
     filtered_by_cinema_threshold = [movie for movie in ongoing_movies_list if
                                     movie['af_cinema_amount'] >= cinema_threshold]
 

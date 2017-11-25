@@ -14,13 +14,13 @@ cache = Cache(app, config={'CACHE_TYPE': 'filesystem',
                            'CACHE_THRESHOLD': 500})
 
 
-def make_cmd_arguments_parser():
+def fetch_cmd_arguments():
     parser_description = 'Run flask server'
     parser = ArgumentParser(description=parser_description)
     parser.add_argument('-d', '--debug_mode',
                         help='Run in debug mode',
                         action='store_true')
-    return parser
+    return parser.parse_args()
 
 
 class MoviesSimple(Resource):
@@ -42,16 +42,17 @@ class MoviesFiltered(Resource):
         }
 
 
-@cache.cached(timeout=86400, key_prefix='movie_data')
+@cache.cached(timeout=60*60*12, key_prefix='movie_data')
 def cached_movie_data():
-    return combine_movie_info_to_list_of_dicts()
+    return combine_movie_info_to_list_of_dicts(cinema_threshold=12)
 
 
 @app.route('/')
 @cache.cached(timeout=60)
 def films_list():
     movie_data_list = cached_movie_data()
-    return render_template('films_list.html', movie_data_list = movie_data_list)
+    return render_template('films_list.html',
+                           movie_data_list = movie_data_list,)
 
 
 @app.route('/api')
@@ -62,8 +63,7 @@ api.add_resource(MoviesSimple, '/api/movies')
 api.add_resource(MoviesFiltered, '/api/movies/<int:result_amount>/cinemas/<int:cinemas_amount>')
 
 if __name__ == "__main__":
-    cmd_args_parser = make_cmd_arguments_parser()
-    cmd_args = cmd_args_parser.parse_args()
+    cmd_args = fetch_cmd_arguments()
     if cmd_args.debug_mode:
         app.config['DEBUG'] = True
     app.run()
